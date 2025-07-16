@@ -26,6 +26,9 @@ public class PropertiesLoader {
     }
 
     public String getProperty(String name) {
-        return properties.getProperty(name);
+        if (System.getenv(name) == null) {
+            return properties.getProperty(name);
+        }
+        return System.getenv(name);
     }
 }

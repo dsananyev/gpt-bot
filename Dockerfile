@@ -1,12 +1,8 @@
-# ---- Build stage ----
-FROM eclipse-temurin:21-jdk AS build
-WORKDIR /app
-COPY . .
-RUN ./gradlew clean build -x test
+FROM openjdk:21-jdk-slim
 
-# ---- Run stage ----
-FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/build/libs/*SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"] 
+
+COPY build/libs/*SNAPSHOT.jar gpt-bot.jar
+COPY application.properties .
+
+CMD ["java", "-jar", "gpt-bot.jar"]
