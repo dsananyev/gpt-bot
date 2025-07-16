@@ -29,12 +29,12 @@ jobs:
         
       - name: 📤 Copy project to server
         run: |
-          rsync -avz --delete --exclude=".git" ./ ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/app/
+          rsync -avz ./build ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/gpt-bot/build
 
       - name: 🚀 Deploy via docker-compose
         run: |
           ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-            cd ~/app
+            cd ~/gpt-bot
             docker-compose down
             docker-compose up -d --build
           EOF
