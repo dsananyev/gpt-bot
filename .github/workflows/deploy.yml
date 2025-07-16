@@ -24,10 +24,11 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+          
       - name: Build jar
         run: ./gradlew clean build
         
-      - name: 📤 Copy project to server
+      - name: 📤 Copy jar to server
         run: |
           rsync -avz ./build ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/gpt-bot/build
 
