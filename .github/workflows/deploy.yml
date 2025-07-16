@@ -30,12 +30,12 @@ jobs:
         
       - name: 📤 Copy jar to server
         run: |
-          rsync -avz ./build ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/gpt-bot/build
+          rsync -avz ./build ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:~/gpt-bot/
 
       - name: 🚀 Deploy via docker-compose
         run: |
           ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-            cd ~/gpt-bot
+            cd ~/gpt-bot/deploy_config
             docker-compose down
             docker-compose up -d --build
           EOF
