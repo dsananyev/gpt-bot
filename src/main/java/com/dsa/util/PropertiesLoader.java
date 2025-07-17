@@ -10,7 +10,7 @@ import java.util.Properties;
 
 @Slf4j
 public class PropertiesLoader {
-    private static final Properties properties= new Properties();
+    private static final Properties properties = new Properties();
 
     static {
         try (InputStream inputStream = PropertiesLoader.class.getClassLoader()
@@ -26,9 +26,6 @@ public class PropertiesLoader {
     }
 
     public String getProperty(String name) {
-        if (System.getenv(name) == null) {
-            return properties.getProperty(name);
-        }
         return System.getenv(name);
     }
 }
