@@ -19,20 +19,18 @@ import java.util.List;
 public class Bot extends TelegramLongPollingBot {
 
     private final static PropertiesLoader loader = new PropertiesLoader();
+    private final static Logger log = LoggerFactory.getLogger(Bot.class);
+    private final static HttpClient httpClient = new HttpClient();
 
     private final static String BOT_USERNAME = loader.getProperty("BOT_USERNAME");
     private final static String BOT_TOKEN = loader.getProperty("BOT_TOKEN");
-
-    private static final Logger log = LoggerFactory.getLogger(Bot.class);
-
-    private HttpClient httpClient;
-
 
     @Override
     public void onUpdateReceived(Update update) {
         Message message = null;
         if (update.hasMessage()) {
             message = update.getMessage();
+            log.info("Got message from user");
         }
 
         if (message.hasText()) {

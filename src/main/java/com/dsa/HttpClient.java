@@ -56,7 +56,7 @@ public class HttpClient {
                 .statusCode(200);
 
         var extractedResponse = response.extract().path("choices[0].message.content");
-
+        log.info("Got response from AI");
         return extractedResponse.toString();
 
 
@@ -102,7 +102,7 @@ public class HttpClient {
                 .statusCode(200);
 
         var extractedResponse = response.extract().path("choices[0].message.content");
-
+        log.info("Got response from AI");
         return extractedResponse.toString();
     }
 

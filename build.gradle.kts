@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.dsa"
-version = "0.0.3-SNAPSHOT"
+version = "0.0.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -14,6 +14,8 @@ dependencies {
     implementation("io.rest-assured:rest-assured:5.5.5")
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("com.google.code.gson:gson:2.13.1")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+
 
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.38")
