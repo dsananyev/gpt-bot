@@ -1,10 +1,8 @@
+package com.dsa.bot;
 
-package com.dsa;
-
+import com.dsa.api.HttpClient;
 import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,26 +14,28 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.List;
 
+
 @Slf4j
 public class Bot extends TelegramLongPollingBot {
 
+
     private final static PropertiesLoader loader = new PropertiesLoader();
-    private final static HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = new HttpClient();
 
     private final static String BOT_USERNAME = loader.getProperty("BOT_USERNAME");
     private final static String BOT_TOKEN = loader.getProperty("BOT_TOKEN");
+
 
     @Override
     public void onUpdateReceived(Update update) {
         Message message = null;
         if (update.hasMessage()) {
             message = update.getMessage();
-            log.info("Got message from user");
         }
 
         if (message.hasText()) {
             var userMessage = message.getText();
-            var reply = httpClient.sendMessage(userMessage);
+            var reply = httpClient.sendMessage(message.getChatId(), userMessage);
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(update.getMessage().getChatId().toString());
             sendMessage.setText(reply);
