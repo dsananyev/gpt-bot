@@ -1,15 +1,14 @@
 package com.dsa.util;
 
-public class PropertiesLoader {
-    package com.dsa.util;
-
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
 
-    @Slf4j
-    public class PropertiesLoader {
+@Slf4j
+public class PropertiesLoader {
         private static final Properties properties = new Properties();
         private static final String customPath = System.getProperty("properties");
 
@@ -58,4 +57,4 @@ import java.util.Properties;
         }
     }
 
-}
+

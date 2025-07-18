@@ -1,12 +1,8 @@
 package com.dsa.bot;
 
 import com.dsa.api.HttpClient;
+import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,16 +16,15 @@ import java.util.List;
 
 
 @Slf4j
-@Component
 public class Bot extends TelegramLongPollingBot {
 
 
     private final static PropertiesLoader loader = new PropertiesLoader();
+    private static final HttpClient httpClient = new HttpClient();
 
     private final static String BOT_USERNAME = loader.getProperty("BOT_USERNAME");
     private final static String BOT_TOKEN = loader.getProperty("BOT_TOKEN");
 
-    private static final Logger log = LoggerFactory.getLogger(Bot.class);
 
     @Override
     public void onUpdateReceived(Update update) {

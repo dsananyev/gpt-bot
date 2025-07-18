@@ -1,5 +1,6 @@
 package com.dsa.context;
 
+import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -7,8 +8,10 @@ import redis.clients.jedis.JedisPool;
 @Slf4j
 public class RedisManager {
 
-    private final static String REDIS_HOST = System.getProperty("REDIS_HOST");
-    private final static int REDIS_PORT = Integer.parseInt(System.getProperty("REDIS_PORT"));
+    private final static PropertiesLoader loader = new PropertiesLoader();
+
+    private final static String REDIS_HOST = loader.getProperty("REDIS_HOST");
+    private final static int REDIS_PORT = Integer.parseInt(loader.getProperty("REDIS_PORT"));
 
     private static JedisPool jedisPool;
 
