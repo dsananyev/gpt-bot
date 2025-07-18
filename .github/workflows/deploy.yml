@@ -13,11 +13,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
-    env:
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-
+    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v3
@@ -28,13 +24,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Inject secrets into application.properties
-        run: |
-          cp application.properties.template application.properties
-          sed -i "s|\${BOT_USERNAME}|${BOT_USERNAME}|g" application.properties
-          sed -i "s|\${BOT_TOKEN}|${BOT_TOKEN}|g" application.properties
-          sed -i "s|\${OPENAI_API_KEY}|${OPENAI_API_KEY}|g" application.properties
 
       - name: Build jar
         run: ./gradlew clean build
