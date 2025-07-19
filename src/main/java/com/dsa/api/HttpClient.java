@@ -1,6 +1,7 @@
 package com.dsa.api;
 
 import com.dsa.context.ContextManager;
+import com.dsa.dto.OpenAiResponse;
 import com.dsa.util.PropertiesLoader;
 import com.google.gson.Gson;
 
@@ -49,28 +50,22 @@ public class HttpClient {
             if (response.isSuccessful() && response.body() != null) {
                 String responseBody = response.body().string();
 
-                Map<?, ?> parsed = gson.fromJson(responseBody, Map.class);
-                List<?> choices = (List<?>) parsed.get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<?, ?> choice = (Map<?, ?>) choices.get(0);
-                    Map<?, ?> messageObj = (Map<?, ?>) choice.get("message");
-                    String content = (String) messageObj.get("content");
-
-                    // Добавляем ответ бота в контекст
-                    contextManager.addBotMessage(userId, content);
-                    return content;
+                OpenAiResponse parsedResponse = gson.fromJson(responseBody, OpenAiResponse.class);
+                var reply = parsedResponse.choices.get(0).message.content();
+                    contextManager.addBotMessage(userId, reply);
+                    return reply;
                 }
-            } else {
-                // Логируем ошибку
-                log.error("Запрос к OpenAI неуспешен: " + response.code());
+            else {
+                log.error("Request hasn't been successful: " + response.code());
             }
 
         } catch (IOException e) {
-            log.error("Ошибка при отправке запроса в OpenAI", e);
+            log.error("Error sending message", e);
         }
 
-        return "Ошибка обработки запроса.";
+        return "Error processing request";
     }
+
 
     public String sendMessage(long userId, String fileUrl, String caption) {
         Map<String, Object> imagePart = Map.of(
@@ -97,18 +92,33 @@ public class HttpClient {
         );
 
 
-        var response = given()
-                .spec(apiService.createRequestSpec(ApiProvider.OPEN_AI))
-                .body(gson.toJson(body))
-                .when()
-                .post()
-                .then()
-                .statusCode(200);
-
-        var extractedResponse = response.extract().path("choices[0].message.content");
-        log.info("Got response from AI");
-        return extractedResponse.toString();
+        var jsonBody = gson.toJson(body);
 
 
+        try (Response response = apiService.getHttpClient()
+                .newCall(apiService.createRequest(ApiProvider.OPEN_AI, jsonBody))
+                .execute()) {
+
+            if (response.isSuccessful() && response.body() != null) {
+                String responseBody = response.body().string();
+
+                OpenAiResponse parsedResponse = gson.fromJson(responseBody, OpenAiResponse.class);
+
+                var reply = parsedResponse.choices.get(0).message.content();
+
+                contextManager.addBotMessage(userId, reply);
+                return reply;
+            }
+            else {
+                log.error("Request hasn't been successful: " + response.code());
+            }
+
+        } catch (IOException e) {
+            log.error("Error sending message", e);
+        }
+
+        return "Error processing request";
     }
+
+
 }
