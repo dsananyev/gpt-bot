@@ -1,6 +1,6 @@
 package com.dsa.bot;
 
-import com.dsa.HttpClient;
+import com.dsa.api.HttpClient;
 import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;

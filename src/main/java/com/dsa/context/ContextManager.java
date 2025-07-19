@@ -10,8 +10,8 @@ import java.util.List;
 @Slf4j
 public class ContextManager {
     private static final String KEY_PREFIX = "chat::";
-    private final byte maxMessages = 10;
-    private final short ttlSeconds = 3600;
+    private final long maxMessages = 10;
+    private final long ttlSeconds = 3600;
 
     public void addUserMessage(long userId, String message) {
         addMessage(userId, new Message("user", message));
@@ -36,6 +36,7 @@ public class ContextManager {
             String json = JsonHelper.convertToJsonString(message);
 
             jedis.rpush(key, json);
+            log.info("Added message to context for user: " + userId);
             jedis.ltrim(key, -maxMessages, -1);
             jedis.expire(key, ttlSeconds);
         } catch (Exception e) {
