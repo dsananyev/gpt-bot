@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.dsa"
-version = "0.0.5-SNAPSHOT"
+version = "0.0.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     // Основные зависимости
-    implementation("io.rest-assured:rest-assured:5.5.5")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("ch.qos.logback:logback-classic:1.4.14")

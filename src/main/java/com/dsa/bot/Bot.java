@@ -1,13 +1,13 @@
 package com.dsa.bot;
 
-import com.dsa.HttpClient;
+import com.dsa.api.HttpClient;
 import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.File;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -19,73 +19,74 @@ import java.util.List;
 public class Bot extends TelegramLongPollingBot {
 
 
-    private final static PropertiesLoader loader = new PropertiesLoader();
+    private static final PropertiesLoader loader = new PropertiesLoader();
     private static final HttpClient httpClient = new HttpClient();
 
-    private final static String BOT_USERNAME = loader.getProperty("BOT_USERNAME");
-    private final static String BOT_TOKEN = loader.getProperty("BOT_TOKEN");
+    private static final String BOT_USERNAME = loader.getProperty("BOT_USERNAME");
+    private static final String BOT_TOKEN = loader.getProperty("BOT_TOKEN");
+
+    public Bot() {
+        super(new DefaultBotOptions(), BOT_TOKEN);
+    }
 
 
     @Override
     public void onUpdateReceived(Update update) {
-        Message message = null;
-        if (update.hasMessage()) {
-            message = update.getMessage();
+        if (!update.hasMessage()) return;
+
+        var message = update.getMessage();
+        var chatId = message.getChatId();
+
+        try {
+            if (message.hasText()) {
+                proceedMessage(chatId, message.getText());
+            } else if (message.hasPhoto()) {
+                proceedMessage(chatId, message.getPhoto(), message.getCaption());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error processing message", e);
         }
 
-        if (message.hasText()) {
-            var userMessage = message.getText();
-            var reply = httpClient.sendMessage(message.getChatId(), userMessage);
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(update.getMessage().getChatId().toString());
-            sendMessage.setText(reply);
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        } else if (message.hasPhoto()) {
-            List<PhotoSize> photos = message.getPhoto();
-            PhotoSize largestPhoto = photos.get(photos.size() - 1); // Берем самое большое
-            String fileId = largestPhoto.getFileId();
-            String caption = message.getCaption(); //
-            String fileUrl = getFileUrl(fileId);
-            String gptResponse = httpClient.sendMessage(fileUrl, caption);
+    }
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(message.getChatId().toString());
-            sendMessage.setText(gptResponse);
 
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
+    private void proceedMessage(long chatId, String message) {
+        var reply = httpClient.sendMessage(chatId, message);
+        sendReply(chatId, reply);
+    }
 
+    private void proceedMessage(long chatId, List<PhotoSize> photoSizes, String caption) {
+
+        var largestPhoto = photoSizes.stream()
+                .max((photo1, photo2) -> Integer.compare(photo1.getHeight() * photo1.getWidth(), photo2.getHeight() * photo2.getWidth()));
+
+        if (largestPhoto.isEmpty()) return;
+
+        var fileUrl = getFileUrl(largestPhoto.get().getFileId());
+
+        if (fileUrl != null) {
+            var reply = httpClient.sendMessage(chatId, fileUrl, caption);
+            sendReply(chatId, reply);
+        } else {
+            sendReply(chatId, "Error receiving image");
+        }
+    }
+
+
+
+    private void sendReply(long chatId, String reply) {
+        var message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(reply);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException("Error sending reply");
         }
 
-
     }
 
-    @Override
-    public void onUpdatesReceived(List<Update> updates) {
-        super.onUpdatesReceived(updates);
-    }
-
-    @Override
-    public String getBotUsername() {
-        log.info("BOT_USERNAME " + BOT_USERNAME);
-        return BOT_USERNAME;
-    }
-
-    public String getBotToken() {
-        return BOT_TOKEN;
-    }
-
-    @Override
-    public void onRegister() {
-        super.onRegister();
-    }
 
     private String getFileUrl(String fileId) {
         try {
@@ -93,10 +94,16 @@ public class Bot extends TelegramLongPollingBot {
             getFileMethod.setFileId(fileId);
             File file = execute(getFileMethod);
 
-            return "https://api.telegram.org/file/bot" + getBotToken() + "/" + file.getFilePath();
+            return "https://api.telegram.org/file/bot" + BOT_TOKEN + "/" + file.getFilePath();
         } catch (TelegramApiException e) {
             log.error("Ошибка при получении файла", e);
             return null;
         }
+    }
+
+    @Override
+    public String getBotUsername() {
+        log.info("BOT_USERNAME: {}", BOT_USERNAME);
+        return BOT_USERNAME;
     }
 }
