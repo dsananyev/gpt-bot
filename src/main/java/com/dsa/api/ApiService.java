@@ -7,11 +7,21 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
+import java.util.concurrent.TimeUnit;
+
 
 @Slf4j
 public class ApiService {
 
-    private final OkHttpClient httpClient = new OkHttpClient();
+    private final OkHttpClient httpClient;
+
+    public ApiService() {
+        httpClient = new OkHttpClient.Builder()
+                        .connectTimeout(10, TimeUnit.SECONDS)
+                        .readTimeout(60, TimeUnit.SECONDS)
+                        .writeTimeout(30, TimeUnit.SECONDS)
+                         .build();
+    }
 
     public OkHttpClient getHttpClient() {
         return httpClient;

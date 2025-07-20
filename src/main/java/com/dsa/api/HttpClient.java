@@ -1,13 +1,13 @@
 package com.dsa.api;
 
 import com.dsa.context.ContextManager;
-import com.dsa.dto.OpenAiResponse;
+import com.dsa.dto.open_ai.Message;
+import com.dsa.dto.open_ai.Response;
 import com.dsa.util.PropertiesLoader;
 import com.google.gson.Gson;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.Response;
 
 
 import java.io.IOException;
@@ -29,30 +29,28 @@ public class HttpClient {
 
 
     public String sendMessage(long userId, String message) {
-        //Processing context
-        contextManager.addUserMessage(userId, message);
-        List<Map<String, String>> messages = new ArrayList<>();
-        messages.add(Map.of("role", "user", "content", message));
 
-        //Creating request body
+        contextManager.addUserMessage(ApiProvider.OPEN_AI, userId, message);
+        List<Message> context = contextManager.getContext(ApiProvider.OPEN_AI, userId);
+
 
         Map<String, Object> body = new HashMap<>();
         body.put("model", "gpt-4o");
-        body.put("messages", messages);
+        body.put("messages", context);
 
         var jsonBody = gson.toJson(body);
 
 
-        try (Response response = apiService.getHttpClient()
+        try (okhttp3.Response response = apiService.getHttpClient()
                 .newCall(apiService.createRequest(ApiProvider.OPEN_AI, jsonBody))
                 .execute()) {
 
             if (response.isSuccessful() && response.body() != null) {
                 String responseBody = response.body().string();
 
-                OpenAiResponse parsedResponse = gson.fromJson(responseBody, OpenAiResponse.class);
-                var reply = parsedResponse.choices.get(0).message.content();
-                    contextManager.addBotMessage(userId, reply);
+                Response parsedResponse = gson.fromJson(responseBody, Response.class);
+                var reply = parsedResponse.choices().get(0).message().content();
+                    contextManager.addBotMessage(ApiProvider.OPEN_AI, userId, reply);
                     return reply;
                 }
             else {
@@ -92,21 +90,24 @@ public class HttpClient {
         );
 
 
+
         var jsonBody = gson.toJson(body);
 
+        contextManager.addUserMessage(ApiProvider.OPEN_AI, userId, jsonBody);
+        List<Message> context = contextManager.getContext(ApiProvider.OPEN_AI, userId);
 
-        try (Response response = apiService.getHttpClient()
+        try (okhttp3.Response response = apiService.getHttpClient()
                 .newCall(apiService.createRequest(ApiProvider.OPEN_AI, jsonBody))
                 .execute()) {
 
             if (response.isSuccessful() && response.body() != null) {
                 String responseBody = response.body().string();
 
-                OpenAiResponse parsedResponse = gson.fromJson(responseBody, OpenAiResponse.class);
+                Response parsedResponse = gson.fromJson(responseBody, Response.class);
 
-                var reply = parsedResponse.choices.get(0).message.content();
+                var reply = parsedResponse.choices().get(0).message().content();
 
-                contextManager.addBotMessage(userId, reply);
+                contextManager.addBotMessage(ApiProvider.OPEN_AI, userId, reply);
                 return reply;
             }
             else {

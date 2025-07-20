@@ -1,7 +1,6 @@
 package com.dsa.bot;
 
 import com.dsa.api.HttpClient;
-import com.dsa.dto.Message;
 import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -51,12 +50,12 @@ public class Bot extends TelegramLongPollingBot {
     }
 
 
-    private void proceedMessage(Long chatId, String message) {
+    private void proceedMessage(long chatId, String message) {
         var reply = httpClient.sendMessage(chatId, message);
         sendReply(chatId, reply);
     }
 
-    private void proceedMessage(Long chatId, List<PhotoSize> photoSizes, String caption) {
+    private void proceedMessage(long chatId, List<PhotoSize> photoSizes, String caption) {
 
         var largestPhoto = photoSizes.stream()
                 .max((photo1, photo2) -> Integer.compare(photo1.getHeight() * photo1.getWidth(), photo2.getHeight() * photo2.getWidth()));
@@ -75,7 +74,7 @@ public class Bot extends TelegramLongPollingBot {
 
 
 
-    private void sendReply(Long chatId, String reply) {
+    private void sendReply(long chatId, String reply) {
         var message = new SendMessage();
         message.setChatId(chatId);
         message.setText(reply);
