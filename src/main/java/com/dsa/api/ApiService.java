@@ -1,6 +1,7 @@
 package com.dsa.api;
 
 
+import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -14,12 +15,16 @@ import java.util.concurrent.TimeUnit;
 public class ApiService {
 
     private final OkHttpClient httpClient;
+    private final static PropertiesLoader loader = new PropertiesLoader();
+    private static final long CONNECT_TIMEOUT_SECONDS = Long.parseLong(loader.getProperty("CONNECT_TIMEOUT"));
+    private static final long READ_TIMEOUT_SECONDS = Long.parseLong(loader.getProperty("READ_TIMEOUT"));
+    private static final long WRITE_TIMEOUT_SECONDS = Long.parseLong(loader.getProperty("WRITE_TIMEOUT"));
 
     public ApiService() {
         httpClient = new OkHttpClient.Builder()
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(60, TimeUnit.SECONDS)
-                        .writeTimeout(30, TimeUnit.SECONDS)
+                        .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                          .build();
     }
 
