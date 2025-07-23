@@ -5,7 +5,9 @@ import com.dsa.util.PropertiesLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
@@ -37,13 +39,27 @@ public class Bot extends TelegramLongPollingBot {
         var message = update.getMessage();
         var chatId = message.getChatId();
 
+
+
+        if (message == null) {
+            log.warn("Got null message");
+            return;
+        }
+
+
         try {
+            SendChatAction typing = new SendChatAction();
+            typing.setChatId(chatId);
+            typing.setAction(ActionType.TYPING);
+            execute(typing);
+
             if (message.hasText()) {
                 proceedMessage(chatId, message.getText());
             } else if (message.hasPhoto()) {
                 proceedMessage(chatId, message.getPhoto(), message.getCaption());
             }
         } catch (Exception e) {
+            log.error("Error processing message: {}", message);
             throw new RuntimeException("Error processing message", e);
         }
 
