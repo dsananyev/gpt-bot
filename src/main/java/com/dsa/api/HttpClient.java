@@ -29,10 +29,8 @@ public class HttpClient {
 
 
     public String sendMessage(long userId, String message) {
-
         contextManager.addUserMessage(ApiProvider.OPEN_AI, userId, message);
         List<Message> context = contextManager.getContext(ApiProvider.OPEN_AI, userId);
-
 
         Map<String, Object> body = new HashMap<>();
         body.put("model", "gpt-4o");
@@ -40,28 +38,34 @@ public class HttpClient {
 
         var jsonBody = gson.toJson(body);
 
-
         try (okhttp3.Response response = apiService.getHttpClient()
                 .newCall(apiService.createRequest(ApiProvider.OPEN_AI, jsonBody))
                 .execute()) {
 
-            if (response.isSuccessful() && response.body() != null) {
-                String responseBody = response.body().string();
+            if (response.body() == null) {
+                log.error("OpenAI response body is null. HTTP code: {}", response.code());
+                return "Пустой ответ от OpenAI";
+            }
 
+            String responseBody = response.body().string();
+
+            if (response.isSuccessful()) {
                 Response parsedResponse = gson.fromJson(responseBody, Response.class);
                 var reply = parsedResponse.choices().get(0).message().content();
-                    contextManager.addBotMessage(ApiProvider.OPEN_AI, userId, reply);
-                    return reply;
-                }
-            else {
-                log.error("Request hasn't been successful: " + response.code());
+
+                contextManager.addBotMessage(ApiProvider.OPEN_AI, userId, reply);
+                return reply;
+            } else {
+                log.error("Ошибка ответа от OpenAI. Код: {} Тело: {}", response.code(), responseBody);
             }
 
         } catch (IOException e) {
-            log.error("Error sending message", e);
+            log.error("Ошибка при отправке запроса к OpenAI", e);
+        } catch (Exception e) {
+            log.error("Непредвиденная ошибка при обработке ответа от OpenAI", e);
         }
 
-        return "Error processing request";
+        return "Ошибка при обработке запроса к OpenAI";
     }
 
 
